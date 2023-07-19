@@ -187,7 +187,7 @@ class CollectionSelfInteraction {
 
     }
     connectParticles(context, particles) {
-        const maxDistance = 70;
+        const maxDistance = 60;
         for (let a = 0; a < particles.length; a++) {
             for (let b = a; b < particles.length; b++) {
                 const ab_x = particles[a].x - particles[b].x;
@@ -221,7 +221,7 @@ let selfInteraction1 = new CollectionSelfInteraction();
 
 
 // collection object
-let particlesCollection = new Collection(1000, behaviour1, selfInteraction1);
+let particlesCollection = new Collection(700, behaviour1, selfInteraction1);
 
 
 // defining the animate function
