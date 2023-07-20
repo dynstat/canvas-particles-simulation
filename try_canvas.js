@@ -69,7 +69,7 @@ class Particle {
     // method to draw the particle (using arc method to create a circle.)
     draw(ctx) {
         // console.log("PARTICLE----->draw");
-        ctx.beginPath(); // needed to indicate that we are draw again from the start, otherwise it might get connected with the other drawingd.
+        ctx.beginPath(); // needed to indicate that we are draw again from the start, otherwise it might get connected with the previouus drawings made with the same context.
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); // creating the arc (circle)
         ctx.fill(); // THIS IS THE METHOD THAT ACTUALLY DISPLAYS THE ARC. (we could use ctx.stroke() if we wanted a hollow circle)
     }
