@@ -56,8 +56,8 @@ class Particle {
         this.radius = Math.floor(Math.random() * 10 + 1);
         this.x = this.radius + Math.random() * (myCanvas.width - this.radius * 2);
         this.y = this.radius + Math.random() * (myCanvas.height - this.radius * 2);
-        this.vx = Math.random() * 1 - 0.5;
-        this.vy = Math.random() * 1 - 0.5;
+        this.vx = Math.random() * 2 - 1; // changing this will decide the velocity
+        this.vy = Math.random() * 2 - 1;
         this.pushX = 0;
         this.pushY = 0;
 
@@ -187,7 +187,7 @@ class CollectionSelfInteraction {
 
     }
     connectParticles(context, particles) {
-        const maxDistance = 60;
+        const maxDistance = 100;
         for (let a = 0; a < particles.length; a++) {
             for (let b = a; b < particles.length; b++) {
                 const ab_x = particles[a].x - particles[b].x;
@@ -197,7 +197,7 @@ class CollectionSelfInteraction {
                     context.save(); // creating a savepoint
 
                     // changing the opacity according to the distance to maxdistance ratio.
-                    const opacity = 1 - (distance / maxDistance);
+                    const opacity = (1 - (distance / maxDistance)) / 2;
                     context.globalAlpha = opacity;
                     context.beginPath();
                     context.moveTo(particles[a].x, particles[a].y);
