@@ -5,6 +5,7 @@
     width: 100vw;
     box-sizing: border-box;
     position: absolute;
+    background-color: #111111;
     /* temporary, just to remove the scroll bar*/
 }
 
