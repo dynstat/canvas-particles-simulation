@@ -221,7 +221,7 @@ let selfInteraction1 = new CollectionSelfInteraction();
 
 
 // collection object
-let particlesCollection = new Collection(900, behaviour1, selfInteraction1);
+let particlesCollection = new Collection(450, behaviour1, selfInteraction1);
 
 
 // defining the animate function
