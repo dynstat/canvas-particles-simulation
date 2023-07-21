@@ -56,8 +56,8 @@ class Particle {
         this.radius = Math.floor(Math.random() * 10 + 1);
         this.x = this.radius + Math.random() * (myCanvas.width - this.radius * 2);
         this.y = this.radius + Math.random() * (myCanvas.height - this.radius * 2);
-        this.vx = Math.random() * 2 - 1; // changing this will decide the velocity
-        this.vy = Math.random() * 2 - 1;
+        this.vx = Math.random() * 1 - 0.5; // changing this will decide the velocity
+        this.vy = Math.random() * 1 - 0.5;
         this.pushX = 0;
         this.pushY = 0;
 
