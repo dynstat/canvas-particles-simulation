@@ -17,8 +17,8 @@ const gradient = c.createLinearGradient(0, 0, myCanvas.width, myCanvas.height);
 gradient.addColorStop(0, '#d4362b');
 gradient.addColorStop(0.25, '#f89334');
 gradient.addColorStop(0.5, '#e4e706');
-gradient.addColorStop(0.75, '#65dd15');
-gradient.addColorStop(1, '#35d1d6');
+gradient.addColorStop(0.75, '#00c975');
+gradient.addColorStop(1, '#1091e7');
 c.strokeStyle = gradient;
 c.fillStyle = gradient; // styling the context with the above gradient
 
