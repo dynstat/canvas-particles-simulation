@@ -221,8 +221,13 @@ let selfInteraction1 = new CollectionSelfInteraction();
 
 
 // collection object
-let particlesCollection = new Collection(450, behaviour1, selfInteraction1);
+if (window.innerWidth > 600) {
+    var particlesCollection = new Collection(450, behaviour1, selfInteraction1);
+}
+else {
 
+    var particlesCollection = new Collection(45, behaviour1, selfInteraction1);
+}
 
 // defining the animate function
 function animate() {
