@@ -23,3 +23,10 @@ canvas {
     /* z-index: 2; */
     background: #31beff;
 }
+
+/* @media (max-width:600px) {
+    canvas {
+        display: none;
+    }
+
+} */
