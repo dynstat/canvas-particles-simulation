@@ -229,7 +229,7 @@ if (window.innerWidth > 600) {
 }
 else {
 
-    var particlesCollection = new Collection(250, behaviour1, selfInteraction1);
+    var particlesCollection = new Collection(100, behaviour1, selfInteraction1);
 }
 
 // defining the animate function
