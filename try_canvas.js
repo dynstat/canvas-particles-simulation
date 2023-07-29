@@ -52,7 +52,6 @@ window.addEventListener('mousemove', (e) => {
 class Particle {
 
     constructor() {
-        // console.log("PARTICLE CLASS");
         this.radius = Math.floor(Math.random() * 10 + 1);
         this.x = this.radius + Math.random() * (myCanvas.width - this.radius * 2);
         this.y = this.radius + Math.random() * (myCanvas.height - this.radius * 2);
@@ -68,7 +67,6 @@ class Particle {
 
     // method to draw the particle (using arc method to create a circle.)
     draw(ctx) {
-        // console.log("PARTICLE----->draw");
         ctx.beginPath(); // needed to indicate that we are draw again from the start, otherwise it might get connected with the previouus drawings made with the same context.
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); // creating the arc (circle)
         ctx.fill(); // THIS IS THE METHOD THAT ACTUALLY DISPLAYS THE ARC. (we could use ctx.stroke() if we wanted a hollow circle)
@@ -80,7 +78,6 @@ class Particle {
 // Class for the collections of the particles defined in the other class.
 class Collection {
     constructor(count, behaviour, interacion) {
-        // console.log("COLLECTION CLASS");
         this.count = count;
         this.particles = [];
         this.behavior = behaviour;
@@ -120,14 +117,12 @@ class Collection {
 // Class for defining the properties for as to how should the collections of the particles behave according to the user interaction.
 class Behavior {
     constructor() {
-        // console.log("BEHAVIOR CLASS");
+
 
     }
 
     // actual effect w.r.t the mouse events 
     effect(particle) {
-        // console.log("BEHAVIOR--->effect");
-
         const dx = particle.x - mouse.x; // x-distance between particle and the cursor.
         const dy = particle.y - mouse.y; // x-distance between particle and the cursor.
 
@@ -169,7 +164,6 @@ class Behavior {
         // console.log("BEHAVIOR---->behave");
 
         collection.forEach(particle => {
-            // console.log(particle);
             particle.draw(c);
             this.effect(particle);
 
@@ -183,8 +177,6 @@ class Behavior {
 
 class CollectionSelfInteraction {
     constructor() {
-        // console.log("CollectionSelfInteraction Constructor");
-
     }
     connectParticles(context, particles) {
         const maxDistance = 100;
