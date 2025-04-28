@@ -10,7 +10,7 @@
         particleRadiusMax: 11, // Random generates up to (but not including) max
         particleVelocityFactor: 1.0, // Multiplier for initial random velocity
         mouseInteractionRadius: 200,
-        particlePushFriction: 0.95, // Lower = more friction (push fades faster). Closer to 1 = less friction.
+        particlePushFriction: 0.55, // Lower = more friction (push fades faster). Closer to 1 = less friction.
         connectionMaxDistance: 100,
         connectionMaxPeers: 4, // Max lines from one particle
         connectionOpacityFactor: 0.5, // Base opacity multiplier for lines
