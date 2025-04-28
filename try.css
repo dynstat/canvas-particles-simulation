@@ -1,32 +1,42 @@
+/* Basic reset */
 * {
-    margin: 0px;
-    padding: 0px;
-    height: 100vh;
-    width: 100vw;
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    position: absolute;
+}
+
+html,
+body {
+    height: 100%;
+    /* Ensure html and body cover the full height */
+    width: 100%;
+    overflow: hidden;
+    /* Prevent scrollbars on the body */
     background-color: #111111;
-    /* temporary, just to remove the scroll bar*/
+    /* Set background on body */
 }
 
 canvas {
-    border: 1px solid black;
-    /* z-index: 1; */
-    /* height: 100%;
-    width: 100%; */
+    display: block;
+    /* Remove extra space below inline elements like canvas */
+    width: 100%;
+    /* Let canvas fill its container (body) */
+    height: 100%;
+    /* border: 1px solid red; /* Optional: for debugging */
 }
 
-
+/* Styles for the card (if you uncomment it in HTML) */
 .card {
+    position: absolute;
+    /* Position relative to the nearest positioned ancestor (or body) */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Center the card */
     width: 20rem;
     height: 30rem;
-    /* z-index: 2; */
     background: #31beff;
+    z-index: 10;
+    /* Ensure it's above the canvas */
+    /* Add other card styles */
 }
-
-/* @media (max-width:600px) {
-    canvas {
-        display: none;
-    }
-
-} */

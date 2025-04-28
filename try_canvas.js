@@ -1,242 +1,248 @@
-var myCanvas = document.querySelector("canvas"); // grabbing the element from the DOM structure as an object
+// Wrap in an IIFE to avoid global scope pollution
+(function () {
 
-// setting the height and the width of the canvas
-myCanvas.height = window.innerHeight;
-myCanvas.width = window.innerWidth;
+    // --- Configuration ---
+    const config = {
+        particleBaseCount: 100,
+        particleCountLargeScreenFactor: 4.5, // Multiply base count for larger screens
+        smallScreenWidthThreshold: 600,
+        particleRadiusMin: 1,
+        particleRadiusMax: 11, // Random generates up to (but not including) max
+        particleVelocityFactor: 1.0, // Multiplier for initial random velocity
+        mouseInteractionRadius: 200,
+        particlePushFriction: 0.95, // Lower = more friction (push fades faster). Closer to 1 = less friction.
+        connectionMaxDistance: 100,
+        connectionMaxPeers: 4, // Max lines from one particle
+        connectionOpacityFactor: 0.5, // Base opacity multiplier for lines
+        gradientColors: ['#d4362b', '#f89334', '#e4e706', '#00c975', '#1091e7']
+    };
 
-// getting the 2D context of the canvas
-var c = myCanvas.getContext("2d");
-// console.log(c);
-
-colorPalette = ["#e63946", "#F7F3D9", "#a8dadc", "#457b9d", "#1d3557"]
-// c.fillStyle = 'blue';
-
-
-// Adding the linear gradient in 5 parts with different colors.
-const gradient = c.createLinearGradient(0, 0, myCanvas.width, myCanvas.height);
-gradient.addColorStop(0, '#d4362b');
-gradient.addColorStop(0.25, '#f89334');
-gradient.addColorStop(0.5, '#e4e706');
-gradient.addColorStop(0.75, '#00c975');
-gradient.addColorStop(1, '#1091e7');
-c.strokeStyle = gradient;
-c.fillStyle = gradient; // styling the context with the above gradient
-
-
-
-// Fix the size of the canvas frame as the window gets resized.
-window.addEventListener('resize', () => {
-    myCanvas.height = window.innerHeight;
-    myCanvas.width = window.innerWidth;
-    c.strokeStyle = gradient;
-    c.fillStyle = gradient; // also re-style the canvas using its context 
-})
-
-// mouse events stored in a global object named "mouse"
-let mouse = {
-    x: undefined,
-    y: undefined,
-    pressed: false,
-    radius: 200
-}
-
-
-// event listner of moving mouse
-window.addEventListener('mousemove', (e) => {
-    mouse.x = e.x;
-    mouse.y = e.y;
-})
-
-
-// Creating the class for defining the properties of each particle.
-class Particle {
-
-    constructor() {
-        this.radius = Math.floor(Math.random() * 10 + 1);
-        this.x = this.radius + Math.random() * (myCanvas.width - this.radius * 2);
-        this.y = this.radius + Math.random() * (myCanvas.height - this.radius * 2);
-        this.vx = Math.random() * 1 - 0.5; // changing this will decide the velocity
-        this.vy = Math.random() * 1 - 0.5;
-        this.pushX = 0;
-        this.pushY = 0;
-
-        // More the friction value gets closer to 1, more will be the effect of Push value, as the Push value is being multiplied with friction value later in the code.
-        this.friction = 0.45;
-        //maybe modify this value according to the weight of the particle. Closer the value to Zero, lesser the effect on the particle, since the particle's coordinates are being multiply with the friction value. 
+    // --- Helper Functions ---
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
     }
 
-    // method to draw the particle (using arc method to create a circle.)
-    draw(ctx) {
-        ctx.beginPath(); // needed to indicate that we are draw again from the start, otherwise it might get connected with the previouus drawings made with the same context.
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); // creating the arc (circle)
-        ctx.fill(); // THIS IS THE METHOD THAT ACTUALLY DISPLAYS THE ARC. (we could use ctx.stroke() if we wanted a hollow circle)
-    }
-}
-
-
-
-// Class for the collections of the particles defined in the other class.
-class Collection {
-    constructor(count, behaviour, interacion) {
-        this.count = count;
-        this.particles = [];
-        this.behavior = behaviour;
-        this.selfInteraction = interacion;
-        // this.mouse = {
-        //     x: 0,
-        //     y: 0,
-        //     pressed: false,
-        //     radius: 200
-        // }
-        this.create();
-
-        //     window.addEventListener('mousemove', (e) => {
-        //         this.mouse.x = e.x;
-        //         this.mouse.y = e.y;
-        //     })
+    function randomInt(min, max) {
+        return Math.floor(random(min, max));
     }
 
-    // creating an array with a collection of particles according to the given count.
-    create() {
-        // console.log("COLLECTION---->create");
-        for (let i = 0; i < this.count; i++) {
-            this.particles.push(new Particle())
+    // --- Particle Class ---
+    class Particle {
+        constructor(canvasWidth, canvasHeight) {
+            this.radius = randomInt(config.particleRadiusMin, config.particleRadiusMax);
+            // Ensure particle starts fully within bounds
+            this.x = random(this.radius, canvasWidth - this.radius);
+            this.y = random(this.radius, canvasHeight - this.radius);
+            this.vx = random(-0.5, 0.5) * config.particleVelocityFactor;
+            this.vy = random(-0.5, 0.5) * config.particleVelocityFactor;
+            this.pushX = 0;
+            this.pushY = 0;
+            this.friction = config.particlePushFriction;
+        }
+
+        applyPhysics(canvasWidth, canvasHeight) {
+            // Apply friction to push force
+            this.pushX *= this.friction;
+            this.pushY *= this.friction;
+
+            // Update position
+            this.x += this.pushX + this.vx;
+            this.y += this.pushY + this.vy;
+
+            // Boundary collision checks
+            if (this.x < this.radius) {
+                this.x = this.radius;
+                this.vx *= -1;
+                this.pushX *= -0.5; // Dampen push on collision
+            } else if (this.x > canvasWidth - this.radius) {
+                this.x = canvasWidth - this.radius;
+                this.vx *= -1;
+                this.pushX *= -0.5;
+            }
+            if (this.y < this.radius) {
+                this.y = this.radius;
+                this.vy *= -1;
+                this.pushY *= -0.5;
+            } else if (this.y > canvasHeight - this.radius) {
+                this.y = canvasHeight - this.radius;
+                this.vy *= -1;
+                this.pushY *= -0.5;
+            }
+
+            // Optional: Add slight damping to push force even without collision
+            // this.pushX *= 0.99;
+            // this.pushY *= 0.99;
+        }
+
+        draw(ctx) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 
-    // internally calls the behave function of the behavior object that we have chosen for this collection. 
-    start() {
-        // console.log("COLLECTION---->start");
-        this.selfInteraction.connectParticles(c, this.particles);
-        this.behavior.behave(this.particles);
-    }
-}
+    // --- Main Particle System ---
+    class ParticleSystem {
+        constructor(canvasSelector) {
+            this.canvas = document.querySelector(canvasSelector);
+            if (!this.canvas) {
+                console.error("Canvas element not found:", canvasSelector);
+                return;
+            }
+            this.ctx = this.canvas.getContext("2d");
+            this.particles = [];
+            this.canvasWidth = 0;
+            this.canvasHeight = 0;
 
+            this.mouse = {
+                x: undefined,
+                y: undefined,
+                radius: config.mouseInteractionRadius
+            };
 
+            // Bind methods to ensure 'this' context is correct
+            this.handleMouseMove = this.handleMouseMove.bind(this);
+            this.handleResize = this.handleResize.bind(this);
+            this.animate = this.animate.bind(this);
 
-// Class for defining the properties for as to how should the collections of the particles behave according to the user interaction.
-class Behavior {
-    constructor() {
-
-
-    }
-
-    // actual effect w.r.t the mouse events 
-    effect(particle) {
-        const dx = particle.x - mouse.x; // x-distance between particle and the cursor.
-        const dy = particle.y - mouse.y; // x-distance between particle and the cursor.
-
-        const distance = Math.hypot(dx, dy);// actual distance between the cursor and the particle.
-        const force = (mouse.radius / distance); // force related to the effecting radius defined in the mouse object above.
-
-        // if the the particle comes within the effecting radius, it push value gets calculated.
-        if (distance < mouse.radius) {
-            const angle = Math.atan2(dy, dx);
-            particle.pushX += Math.cos(angle) * force;
-            particle.pushY += Math.sin(angle) * force;
+            this.init();
         }
 
-        // actually pushing the particle
-        particle.x += (particle.pushX *= particle.friction) + particle.vx;
-        particle.y += (particle.pushY *= particle.friction) + particle.vy;
-
-        // making it reverse the direction if the window is resized so that the particles do not get out of the canvas.
-        if (particle.x < particle.radius) {
-            particle.x = particle.radius;
-            particle.vx *= -1;
-            // making it reverse the direction from the edges of the screen.
-        } else if (particle.x > window.innerWidth - particle.radius) {
-            particle.x = window.innerWidth - particle.radius;
-            particle.vx *= -1;
-        }
-        if (particle.y < particle.radius) {
-            particle.y = particle.radius;
-            particle.vy *= -1;
-        } else if (particle.y > window.innerHeight - particle.radius) {
-            particle.y = window.innerHeight - particle.radius;
-            particle.vy *= -1;
+        init() {
+            // Initial setup
+            this.handleResize(); // Set initial size and create particles
+            this.setupEventListeners();
+            this.animate(); // Start the animation loop
         }
 
-    }
+        setupEventListeners() {
+            window.addEventListener('mousemove', this.handleMouseMove);
+            window.addEventListener('resize', this.handleResize);
+            // Add touch listeners if needed
+        }
 
-    // behave method consists of applying a callback function for each particle in the collection
-    behave(collection) {
-        // console.log("BEHAVIOR---->behave");
+        handleMouseMove(event) {
+            this.mouse.x = event.clientX;
+            this.mouse.y = event.clientY;
+        }
 
-        collection.forEach(particle => {
-            particle.draw(c);
-            this.effect(particle);
+        handleResize() {
+            this.canvasWidth = window.innerWidth;
+            this.canvasHeight = window.innerHeight;
+            this.canvas.width = this.canvasWidth;
+            this.canvas.height = this.canvasHeight;
 
+            this.applyGradientStyle();
+            this.createParticles(); // Recreate particles on resize for simplicity here
+        }
 
-        });
-    }
+        applyGradientStyle() {
+            const gradient = this.ctx.createLinearGradient(0, 0, this.canvasWidth, this.canvasHeight);
+            const step = 1 / (config.gradientColors.length - 1);
+            config.gradientColors.forEach((color, index) => {
+                gradient.addColorStop(Math.min(index * step, 1.0), color); // Ensure stop is <= 1
+            });
+            this.ctx.strokeStyle = gradient;
+            this.ctx.fillStyle = gradient;
+        }
 
+        createParticles() {
+            this.particles = [];
+            const count = this.canvasWidth > config.smallScreenWidthThreshold
+                ? config.particleBaseCount * config.particleCountLargeScreenFactor
+                : config.particleBaseCount;
 
+            for (let i = 0; i < count; i++) {
+                this.particles.push(new Particle(this.canvasWidth, this.canvasHeight));
+            }
+            // Initialize mouse position off-screen until first move
+            this.mouse.x = -config.mouseInteractionRadius * 2;
+            this.mouse.y = -config.mouseInteractionRadius * 2;
+        }
 
-}
+        applyMouseInteraction() {
+            if (this.mouse.x === undefined || this.mouse.y === undefined) return;
 
-class CollectionSelfInteraction {
-    constructor() {
-    }
-    connectParticles(context, particles) {
-        const maxDistance = 100;
+            for (const particle of this.particles) {
+                const dx = particle.x - this.mouse.x;
+                const dy = particle.y - this.mouse.y;
+                const distance = Math.hypot(dx, dy);
 
-        for (let a = 0; a < particles.length; a++) {
-            let count = 0;
-            for (let b = a; b < particles.length; b++) {
-                const ab_x = particles[a].x - particles[b].x;
-                const ab_y = particles[a].y - particles[b].y;
-                const distance = Math.hypot(ab_x, ab_y);
-                if (distance < maxDistance && count <= 4) {
-                    context.save(); // creating a savepoint
+                if (distance < this.mouse.radius && distance > 0.1) { // Add small threshold to avoid division by zero/huge forces
+                    const forceDirectionX = dx / distance;
+                    const forceDirectionY = dy / distance;
+                    // Force stronger closer to center, falls off towards radius edge
+                    const forceMagnitude = (1 - distance / this.mouse.radius); // Simple linear falloff
 
-                    // changing the opacity according to the distance to maxdistance ratio.
-                    const opacity = (1 - (distance / maxDistance)) / 2;
-                    context.globalAlpha = opacity;
-                    context.beginPath();
-                    context.moveTo(particles[a].x, particles[a].y);
-                    context.lineTo(particles[b].x, particles[b].y);
-                    context.stroke();
-                    count++;
-
-                    context.restore(); // restoring back to the previous saved point.
+                    // Apply push force (consider scaling by particle mass/radius if desired)
+                    particle.pushX += forceDirectionX * forceMagnitude * 5; // Adjust multiplier for desired push strength
+                    particle.pushY += forceDirectionY * forceMagnitude * 5;
                 }
             }
         }
+
+
+        drawConnections() {
+            const maxDistSq = config.connectionMaxDistance * config.connectionMaxDistance; // Use squared distance for efficiency
+
+            for (let i = 0; i < this.particles.length; i++) {
+                let connections = 0;
+                const p1 = this.particles[i];
+
+                for (let j = i + 1; j < this.particles.length; j++) { // Check each pair only once
+                    if (connections >= config.connectionMaxPeers) break; // Max connections reached for p1
+
+                    const p2 = this.particles[j];
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distSq = dx * dx + dy * dy;
+
+                    if (distSq < maxDistSq) {
+                        this.ctx.save();
+                        const distance = Math.sqrt(distSq); // Need actual distance for opacity
+                        const opacity = (1 - (distance / config.connectionMaxDistance)) * config.connectionOpacityFactor;
+                        this.ctx.globalAlpha = Math.max(0, Math.min(opacity, 1)); // Clamp opacity 0-1
+
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(p1.x, p1.y);
+                        this.ctx.lineTo(p2.x, p2.y);
+                        this.ctx.stroke();
+                        this.ctx.restore();
+                        connections++;
+                    }
+                }
+            }
+        }
+
+        animate() {
+            // 1. Clear Canvas
+            this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+            // 2. Apply Interactions
+            this.applyMouseInteraction();
+
+            // 3. Update Particles
+            for (const particle of this.particles) {
+                particle.applyPhysics(this.canvasWidth, this.canvasHeight);
+            }
+
+            // 4. Draw Connections (draw lines first, underneath particles)
+            this.drawConnections();
+
+            // 5. Draw Particles
+            for (const particle of this.particles) {
+                particle.draw(this.ctx);
+            }
+
+            // 6. Request Next Frame
+            requestAnimationFrame(this.animate);
+        }
     }
 
-}
+    // --- Initialisation ---
+    // Wait for the DOM to be ready (optional but good practice)
+    document.addEventListener('DOMContentLoaded', () => {
+        new ParticleSystem('canvas');
+    });
 
-// creating a custom behavior object
-let behaviour1 = new Behavior();
-
-
-//creating a custom CollectionSelfInteraction object.
-let selfInteraction1 = new CollectionSelfInteraction();
-
-
-// collection object
-if (window.innerWidth > 600) {
-    var particlesCollection = new Collection(450, behaviour1, selfInteraction1);
-}
-else {
-
-    var particlesCollection = new Collection(100, behaviour1, selfInteraction1);
-}
-
-// defining the animate function
-function animate() {
-
-    c.clearRect(0, 0, innerWidth, innerHeight); // To clear the previously drawn objects every frame.
-
-    // particlesCollection
-    particlesCollection.start();
-
-    // calls a function asynchronously for each new frame.
-    requestAnimationFrame(animate);
-}
-
-
-
-// Calling the animate function 
-animate();
+})(); // End IIFE
