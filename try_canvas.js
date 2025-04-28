@@ -1,79 +1,90 @@
-// Wrap in an IIFE to avoid global scope pollution
+// Wrap everything in an IIFE (Immediately Invoked Function Expression) to prevent global scope pollution
 (function () {
 
-    // --- Configuration ---
+    // Configuration object containing all adjustable parameters for the particle system
     const config = {
-        particleBaseCount: 100,
-        particleCountLargeScreenFactor: 4.5, // Multiply base count for larger screens
-        smallScreenWidthThreshold: 600,
-        particleRadiusMin: 1,
-        particleRadiusMax: 11, // Random generates up to (but not including) max
-        particleVelocityFactor: 1.0, // Multiplier for initial random velocity
-        mouseInteractionRadius: 200,
-        particlePushFriction: 0.95, // Lower = more friction (push fades faster). Closer to 1 = less friction.
-        connectionMaxDistance: 100,
-        connectionMaxPeers: 4, // Max lines from one particle
-        connectionOpacityFactor: 0.5, // Base opacity multiplier for lines
-        gradientColors: ['#d4362b', '#f89334', '#e4e706', '#00c975', '#1091e7']
+        particleBaseCount: 100,              // Base number of particles for small screens
+        particleCountLargeScreenFactor: 4.5, // Multiplier for particle count on larger screens
+        smallScreenWidthThreshold: 600,      // Width threshold to determine small/large screen
+        particleRadiusMin: 1,                // Minimum particle size
+        particleRadiusMax: 11,               // Maximum particle size (exclusive)
+        particleVelocityFactor: 1.0,         // Speed multiplier for particles
+        mouseInteractionRadius: 200,         // Radius of mouse influence area
+        particlePushFriction: 0.55,         // Friction coefficient for push forces
+        connectionMaxDistance: 100,          // Maximum distance for particle connections
+        connectionMaxPeers: 4,              // Maximum number of connections per particle
+        connectionOpacityFactor: 0.5,       // Base opacity for connection lines
+        gradientColors: ['#d4362b', '#f89334', '#e4e706', '#00c975', '#1091e7'] // Colors for gradient
     };
 
-    // --- Helper Functions ---
+    // Helper function to generate random decimal number between min and max
     function random(min, max) {
         return Math.random() * (max - min) + min;
     }
 
+    // Helper function to generate random integer between min and max
     function randomInt(min, max) {
         return Math.floor(random(min, max));
     }
 
-    // --- Particle Class ---
+    // Particle class - represents individual particles in the system
     class Particle {
         constructor(canvasWidth, canvasHeight) {
+            // Initialize particle with random radius within configured bounds
             this.radius = randomInt(config.particleRadiusMin, config.particleRadiusMax);
-            // Ensure particle starts fully within bounds
+
+            // Set random starting position ensuring particle is fully within canvas bounds
             this.x = random(this.radius, canvasWidth - this.radius);
             this.y = random(this.radius, canvasHeight - this.radius);
+
+            // Set random initial velocity with configured speed factor
             this.vx = random(-0.5, 0.5) * config.particleVelocityFactor;
             this.vy = random(-0.5, 0.5) * config.particleVelocityFactor;
+
+            // Initialize push force components (used for mouse interaction)
             this.pushX = 0;
             this.pushY = 0;
             this.friction = config.particlePushFriction;
         }
 
+        // Update particle physics each frame
         applyPhysics(canvasWidth, canvasHeight) {
-            // Apply friction to push force
+            // Apply friction to slow down push forces over time
             this.pushX *= this.friction;
             this.pushY *= this.friction;
 
-            // Update position
+            // Update particle position based on velocity and push forces
             this.x += this.pushX + this.vx;
             this.y += this.pushY + this.vy;
 
-            // Boundary collision checks
+            // Handle collisions with canvas boundaries
+            // Left boundary
             if (this.x < this.radius) {
                 this.x = this.radius;
-                this.vx *= -1;
-                this.pushX *= -0.5; // Dampen push on collision
-            } else if (this.x > canvasWidth - this.radius) {
+                this.vx *= -1;              // Reverse velocity
+                this.pushX *= -0.5;         // Reduce push force
+            }
+            // Right boundary
+            else if (this.x > canvasWidth - this.radius) {
                 this.x = canvasWidth - this.radius;
                 this.vx *= -1;
                 this.pushX *= -0.5;
             }
+            // Top boundary
             if (this.y < this.radius) {
                 this.y = this.radius;
                 this.vy *= -1;
                 this.pushY *= -0.5;
-            } else if (this.y > canvasHeight - this.radius) {
+            }
+            // Bottom boundary
+            else if (this.y > canvasHeight - this.radius) {
                 this.y = canvasHeight - this.radius;
                 this.vy *= -1;
                 this.pushY *= -0.5;
             }
-
-            // Optional: Add slight damping to push force even without collision
-            // this.pushX *= 0.99;
-            // this.pushY *= 0.99;
         }
 
+        // Draw the particle on the canvas
         draw(ctx) {
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -81,30 +92,35 @@
         }
     }
 
-    // --- Main Particle System ---
+    // Main system class managing all particles and interactions
     class ParticleSystem {
         constructor(canvasSelector) {
+            // Initialize canvas and context
             this.canvas = document.querySelector(canvasSelector);
             if (!this.canvas) {
                 console.error("Canvas element not found:", canvasSelector);
                 return;
             }
             this.ctx = this.canvas.getContext("2d");
+
+            // Initialize particle array and canvas dimensions
             this.particles = [];
             this.canvasWidth = 0;
             this.canvasHeight = 0;
 
+            // Initialize mouse tracking object
             this.mouse = {
                 x: undefined,
                 y: undefined,
                 radius: config.mouseInteractionRadius
             };
 
-            // Bind methods to ensure 'this' context is correct
+            // Bind methods to maintain correct 'this' context
             this.handleMouseMove = this.handleMouseMove.bind(this);
             this.handleResize = this.handleResize.bind(this);
             this.animate = this.animate.bind(this);
 
+            // Start initialization
             this.init();
         }
 
@@ -239,10 +255,9 @@
         }
     }
 
-    // --- Initialisation ---
-    // Wait for the DOM to be ready (optional but good practice)
+    // Initialize the particle system when DOM is fully loaded
     document.addEventListener('DOMContentLoaded', () => {
         new ParticleSystem('canvas');
     });
 
-})(); // End IIFE
+})();
