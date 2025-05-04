@@ -83,13 +83,13 @@
 
     // --- Main Particle System ---
     class ParticleSystem {
-        constructor(canvasSelector) {
-            this.canvas = document.querySelector(canvasSelector);
+        constructor(canvasSelector) { // the name of the element "canvas" will be passed into the canvasSelector parameter
+            this.canvas = document.querySelector(canvasSelector);   // this will become document.querySelector("canvas")
             if (!this.canvas) {
                 console.error("Canvas element not found:", canvasSelector);
                 return;
             }
-            this.ctx = this.canvas.getContext("2d");
+            this.ctx = this.canvas.getContext("2d");  // getting the context for using the canvas apo of the browser.
             this.particles = [];
             this.canvasWidth = 0;
             this.canvasHeight = 0;
