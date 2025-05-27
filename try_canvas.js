@@ -41,19 +41,19 @@
             // 2.1 - PARTICLE INITIALIZATION
             // Generate random radius within configured range
             this.radius = randomInt(config.particleRadiusMin, config.particleRadiusMax);
-            
+
             // Set random position ensuring particle is fully inside canvas bounds
             this.x = random(this.radius, canvasWidth - this.radius);
             this.y = random(this.radius, canvasHeight - this.radius);
-            
+
             // Set random initial velocity with configured factor
             this.vx = random(-0.5, 0.5) * config.particleVelocityFactor;
             this.vy = random(-0.5, 0.5) * config.particleVelocityFactor;
-            
+
             // Initialize push forces (for mouse interaction) to zero
             this.pushX = 0;
             this.pushY = 0;
-            
+
             // Copy friction value from config
             this.friction = config.particlePushFriction;
         }
@@ -75,20 +75,20 @@
                 this.x = this.radius;        // Reposition to boundary
                 this.vx *= -1;               // Reverse velocity (bounce)
                 this.pushX *= -0.5;          // Reduce and reverse push force
-            } 
+            }
             // Right boundary collision
             else if (this.x > canvasWidth - this.radius) {
                 this.x = canvasWidth - this.radius;
                 this.vx *= -1;
                 this.pushX *= -0.5;
             }
-            
+
             // Top boundary collision
             if (this.y < this.radius) {
                 this.y = this.radius;
                 this.vy *= -1;
                 this.pushY *= -0.5;
-            } 
+            }
             // Bottom boundary collision
             else if (this.y > canvasHeight - this.radius) {
                 this.y = canvasHeight - this.radius;
@@ -123,13 +123,13 @@
                 console.error("Canvas element not found:", canvasSelector);
                 return;
             }
-            
+
             // Get 2D rendering context
             this.ctx = this.canvas.getContext("2d");
-            
+
             // Initialize empty particle array
             this.particles = [];
-            
+
             // Initialize canvas dimensions (will be set properly in handleResize)
             this.canvasWidth = 0;
             this.canvasHeight = 0;
@@ -191,15 +191,15 @@
         applyGradientStyle() {
             // Create gradient from top-left to bottom-right
             const gradient = this.ctx.createLinearGradient(0, 0, this.canvasWidth, this.canvasHeight);
-            
+
             // Calculate step size for evenly distributing colors
             const step = 1 / (config.gradientColors.length - 1);
-            
+
             // Add each color at its calculated position
             config.gradientColors.forEach((color, index) => {
                 gradient.addColorStop(Math.min(index * step, 1.0), color); // Ensure stop is <= 1
             });
-            
+
             // Apply gradient to both stroke (lines) and fill (particles)
             this.ctx.strokeStyle = gradient;
             this.ctx.fillStyle = gradient;
@@ -208,13 +208,13 @@
         // ====================================================
         // STEP 4: PARTICLE MANAGEMENT
         // ====================================================
-        
+
         // 4.1 - PARTICLE CREATION
         // Creates particles based on screen size
         createParticles() {
             // Clear existing particles
             this.particles = [];
-            
+
             // Calculate particle count based on screen width
             const count = this.canvasWidth > config.smallScreenWidthThreshold
                 ? config.particleBaseCount * config.particleCountLargeScreenFactor
@@ -224,7 +224,7 @@
             for (let i = 0; i < count; i++) {
                 this.particles.push(new Particle(this.canvasWidth, this.canvasHeight));
             }
-            
+
             // Initialize mouse position off-screen until first mouse movement
             this.mouse.x = -config.mouseInteractionRadius * 2;
             this.mouse.y = -config.mouseInteractionRadius * 2;
@@ -241,7 +241,7 @@
                 // Calculate vector from mouse to particle
                 const dx = particle.x - this.mouse.x;
                 const dy = particle.y - this.mouse.y;
-                
+
                 // Calculate distance using hypot (Pythagoras)
                 const distance = Math.hypot(dx, dy);
 
@@ -250,7 +250,7 @@
                     // Calculate unit vector for force direction
                     const forceDirectionX = dx / distance;
                     const forceDirectionY = dy / distance;
-                    
+
                     // Calculate force magnitude - stronger near mouse, weaker at edge
                     const forceMagnitude = (1 - distance / this.mouse.radius);
 
@@ -278,7 +278,7 @@
                     if (connections >= config.connectionMaxPeers) break;
 
                     const p2 = this.particles[j];
-                    
+
                     // Calculate squared distance between particles
                     const dx = p1.x - p2.x;
                     const dy = p1.y - p2.y;
@@ -287,10 +287,10 @@
                     // If particles are close enough, draw connection
                     if (distSq < maxDistSq) {
                         this.ctx.save();  // Save current context state
-                        
+
                         // Calculate actual distance for opacity
                         const distance = Math.sqrt(distSq);
-                        
+
                         // Calculate opacity based on distance - closer = more opaque
                         const opacity = (1 - (distance / config.connectionMaxDistance)) * config.connectionOpacityFactor;
                         this.ctx.globalAlpha = Math.max(0, Math.min(opacity, 1)); // Clamp to valid range
@@ -300,7 +300,7 @@
                         this.ctx.moveTo(p1.x, p1.y);
                         this.ctx.lineTo(p2.x, p2.y);
                         this.ctx.stroke();
-                        
+
                         this.ctx.restore(); // Restore context state
                         connections++;      // Increment connection count
                     }
